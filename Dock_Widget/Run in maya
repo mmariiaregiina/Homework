@@ -1,0 +1,9 @@
+import sys
+packages = ['My_script']
+for i in sys.modules.keys()[:]:
+    for package in packages:
+        if i.startswith(package):
+            del(sys.modules[i])
+            
+import My_script.main_Window
+My_script.main_Window.main()
