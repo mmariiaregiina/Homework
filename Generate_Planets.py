@@ -80,7 +80,6 @@ def CreateMoons(minMoons, maxMoons):
         cmds.hyperShade(assign=shader_moon)
        
       
-
        
 cleanScene ()
 createPlanet(3,10)
