@@ -1,0 +1,208 @@
+
+#_____________________ПРАКТИЧЕСКАЯ ЧАСТЬ:_____________________
+1). 
+def find_max_word(words):
+    max_word = max(words, key=len) # words - список слов, key - критерий, по котрому сравниваются элементы
+    print("Word with maximum length:", max_word)
+
+find_max_word(["pineapple", "polynomial", "equation"])
+#----------------------------------------------------------------------------------------
+2).
+my_dict = {"fruit" : ["apple", "blueberry", "pineapple"], "vegetable" : ["broccoli", "potato", "tomato"]} 
+my_list = ["maya", "apple", "potato", "blueberry", "laptop", "icecream", "tomato", "candy"]
+
+for i in range(len(my_list)):
+    if my_list[i] in my_dict["fruit"]:
+        my_list[i] = my_dict["fruit"][my_dict["fruit"].index(my_list[i]) + 1]
+    else:
+        if my_list[i] in my_dict[ "vegetable"]:
+            my_list[i] = my_dict[ "vegetable"][my_dict[ "vegetable"].index(my_list[i]) - 1] # -1 потому что у помидора нет следующего слова только предыдущего, с плюсом ошибка
+
+print(my_list)
+#----------------------------------------------------------------------------------------
+3).
+import re
+words = ["A_super_bus_driver_001", "B_sport_car_091", "b_sport_car_091", "A_super_bus_driver_01", "A_super_jar_driver_555", " B_sport_car091", "A_super_bus_driver_768"]   
+
+template = re.compile("^[A-Z]\_.*(car|bus|truck).*\_\d{3}$")
+
+for i in words:
+    if template.match(i):
+        print (i + " - It`s a match!")
+#----------------------------------------------------------------------------------------
+4).
+import maya.cmds as cmds 
+import random
+
+locs = cmds.ls(type='locator') 
+obj = cmds.ls(type='mesh')
+cmds.parent(obj, world=1)
+cmds.delete("objects") # because it was hidden group
+
+if len(locs) != len(obj):
+        print("Amount of locators is not equal to objects in the sceen")
+        cmds.inViewMessage(amg='ERROR: <hl>"Amount of locators is not equal to objects in the sceen"</hl>.', pos='midCenter', fade=1)
+        
+for i in locs:
+        random_obj = random.choice(obj)
+        cmds.matchTransform(random_obj, i)
+#----------------------------------------------------------------------------------------
+5). 
+# 1st METHOD USING BOUNDING BOX, BUT THE OBJECT OUT OF THE SURFACE:
+import maya.cmds as cmds  
+import random 
+
+selection = cmds.ls(sl=1)
+obj = selection[0]
+other_obj = selection[1:]  
+
+minPoint = cmds.getAttr(obj + ".boundingBoxMin") 
+maxPoint = cmds.getAttr(obj + ".boundingBoxMax") 
+
+for item in other_obj: 
+    x = random.uniform(minPoint[0][0], maxPoint[0][0]) 
+    y = random.uniform(minPoint[0][1], maxPoint[0][1]) 
+    z = random.uniform(minPoint[0][2], maxPoint[0][2]) 
+
+    cmds.xform(item, translation=(x, y, z))
+
+#2nd METHOD USING OPENMAYA AND VERTEXES CPPRDINATES:
+import maya.OpenMaya as OpenMaya
+import maya.cmds as cmds
+import random
+
+selection = cmds.ls(sl=1)
+selected_object = selection[0]
+other_objs = selection[1:]
+
+selection_list = OpenMaya.MSelectionList()
+selection_list.add(selected_object)
+mDagPath = OpenMaya.MDagPath()
+selection_list.getDagPath(0, mDagPath)
+
+vertex_iterator = OpenMaya.MItMeshVertex(mDagPath)
+
+while not vertex_iterator.isDone():
+    index = vertex_iterator.index()
+    coordinates = vertex_iterator.position()
+   
+    for obj in other_objs:
+        x = random.uniform(0, coordinates.x)
+        y = random.uniform(0, coordinates.y)
+        z = random.uniform(0, coordinates.z)
+        cmds.xform(obj, t=(x, y, z))
+
+    vertex_iterator.next()
+
+#----------------------------------------------------------------------------------------
+6).
+import maya.cmds as cmds
+from PySide2 import QtWidgets, QtCore, QtGui
+from maya.app.general.mayaMixin import MayaQWidgetBaseMixin
+import random
+
+class MyWindow(MayaQWidgetBaseMixin, QtWidgets.QDialog):
+    def __init__(self):
+        super(MyWindow, self).__init__()
+
+        self.checkUI()
+        self.createUI()
+
+    def createUI(self):
+        '''
+        The function creates UI and buttons "first", "second"
+        '''
+        self.setObjectName("MyTool")
+        self.setWindowTitle("Selection Tool")
+        self.setMinimumSize(100, 100)
+
+        # set main_Layout:
+        self.main_Layout = QtWidgets.QVBoxLayout()
+        self.main_Layout.setAlignment(QtCore.Qt.AlignCenter)
+        self.main_Layout.setContentsMargins(10, 10, 10, 10)
+        self.main_Layout.setSpacing(10)
+        self.setLayout(self.main_Layout)
+
+        # color of mLayout:
+        self.setAutoFillBackground(True)
+        self.p = self.palette()
+        self.p.setColor(self.backgroundRole(), QtGui.QColor(255, 255, 255))
+        self.setPalette(self.p)
+
+        # add_button "first" in main_layout:
+        self.add_button = QtWidgets.QPushButton("FIRST")
+        self.add_button.setObjectName("MyCustomButtonAdd")
+        self.main_Layout.addWidget(self.add_button)
+        self.add_button.setMaximumWidth(30)
+        self.button2Style = """
+                QPushButton#MyCustomButtonAdd {
+                background-color: rgb(50, 108, 131);
+                border-style: outset;
+                border-width: 2px;
+                border-radius: 10px;
+                border-color: black;
+                font: bold 14px;
+                min-width: 10em;
+                padding: 6px;
+            }
+            QPushButton#MyCustomButtonAdd:pressed {
+                background-color: rgb(225, 255, 255);
+                border-style: inset;
+            }
+                }
+                """
+        self.add_button.setStyleSheet(self.button2Style)
+
+        self.add_button.clicked.connect(self.changeColor) # here have to connect function for "plus" button
+        self.main_Layout.addWidget(self.add_button)
+
+        # del_button "second" in main_layout:
+        self.del_button = QtWidgets.QPushButton("SECOND")
+        self.del_button.setObjectName("MyCustomButtonDel")
+        self.main_Layout.addWidget(self.del_button)
+        self.del_button.setMaximumWidth(30)
+        self.button2Style = """
+                QPushButton#MyCustomButtonDel {
+                background-color: rgb(50, 108, 131);
+                border-style: outset;
+                border-width: 2px;
+                border-radius: 10px;
+                border-color: black;
+                font: bold 14px;
+                min-width: 10em;
+                padding: 6px;
+            }
+            QPushButton#MyCustomButtonDel:pressed {
+                background-color: rgb(225, 255, 255);
+                border-style: inset;
+            }
+                }
+                """
+        self.del_button.setStyleSheet(self.button2Style)
+
+        self.del_button.clicked.connect(self.delit_all)
+        self.main_Layout.addWidget(self.del_button)
+
+    # functions:
+
+    def changeColor(self, event):
+
+        self.p = self.palette()
+        r = random.randint(0, 255)
+        g = random.randint(0, 255)
+        b = random.randint(0, 255)
+        self.p.setColor(QtGui.QPalette.Background, QtGui.QColor(r, g, b))
+        self.setPalette(self.p)
+
+    def delit_all(self):
+        self.deleteLater()
+
+    def checkUI(self):
+        if cmds.window("MyTool", query=1, exists=1):
+            cmds.deleteUI("MyTool")
+        if cmds.windowPref("MyTool", exists=1):
+            cmds.windowPref("MyTool", remove=1)
+
+
+myUI = MyWindow()
+myUI.show()
