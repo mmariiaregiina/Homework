@@ -1,0 +1,4 @@
+execfile ("C:\Users\Mariia Grebeshkova\OneDrive\Desktop\Project_2\save_pose.py")
+
+execfile ("C:\Users\Mariia Grebeshkova\OneDrive\Desktop\Project_2\open_pose.py")
+       
